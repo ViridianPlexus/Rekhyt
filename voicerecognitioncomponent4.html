@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Recognition with Boxes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .box {
+            width: 200px;
+            height: 200px;
+            border: 2px solid black;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow-wrap: break-word;
+            overflow: auto;
+        }
+        #userVisualizer {
+            width: 50px;
+            height: 50px;
+            background-color: #007bff;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            transition: transform 0.1s ease;
+        }
+        .microphone-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .microphone-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="userVisualizer"></div>
+    <div class="container">
+        <div class="box">hidden temple dragon</div>
+        <div class="box" id="resultBox"></div>
+    </div>
+    <button class="microphone-button" id="toggleBtn">
+        <i class="fa-solid fa-microphone"></i> Start Listening
+    </button>
+
+    <script>
+        const TOGGLE_BTN = document.getElementById("toggleBtn");
+        const USER_VISUALIZER = document.getElementById("userVisualizer");
+        const RESULT_BOX = document.getElementById("resultBox");
+
+        const VOICE = window.speechSynthesis;
+        let isChatting = false;
+        let recognition = null;
+        let context = new (window.AudioContext || window.webkitAudioContext)();
+        let stream = null;
+        let animationId = null;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        async function startChat() {
+            TOGGLE_BTN.innerHTML = '<i class="fa-solid fa-stop"></i> Stop';
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            await letUserSpeak();
+        }
+
+        function stopChat() {
+            if (recognition) {
+                recognition.stop();
+            }
+            if (VOICE.speaking) VOICE.cancel();
+            stopUserRecording();
+            TOGGLE_BTN.innerHTML = '<i class="fa-solid fa-microphone"></i> Start Listening';
+        }
+
+        async function letUserSpeak() {
+            try {
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                });
+                stream = newStream;
+                const source = context.createMediaStreamSource(newStream);
+                const analyzer = context.createAnalyser();
+                source.connect(analyzer);
+                animationId = updateUserBubble(analyzer);
+
+                recognition.start();
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    RESULT_BOX.textContent = transcript;
+                    stopUserRecording();
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    stopChat();
+                };
+
+                recognition.onend = function() {
+                    stopChat();
+                };
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                stopChat();
+            }
+        }
+
+        function updateUserBubble(analyzer) {
+            const fbcArray = new Uint8Array(analyzer.frequencyBinCount);
+            analyzer.getByteFrequencyData(fbcArray);
+            const level = fbcArray.reduce((accum, val) => accum + val, 0) / fbcArray.length;
+
+            USER_VISUALIZER.style.transform = `scale(${1 + level / 100})`;
+            
+            animationId = requestAnimationFrame(() => updateUserBubble(analyzer));
+        }
+
+        function stopUserRecording() {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+            if (stream) {
+                stream.getTracks().forEach(s => s.stop());
+                stream = null;
+            }
+            USER_VISUALIZER.style.transform = 'scale(1)';
+        }
+
+        TOGGLE_BTN.addEventListener("click", () => {
+            isChatting = !isChatting;
+            isChatting ? startChat() : stopChat();
+        });
+    </script>
+</body>
+</html>

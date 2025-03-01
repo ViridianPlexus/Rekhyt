@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Text Matching with Audio</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .box {
+            width: 200px;
+            height: 200px;
+            border: 2px solid black;
+            margin: 10px;
+            padding: 10px;
+            overflow: auto;
+        }
+        #inputBox {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+        }
+        .highlight {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box" id="leftBox">hidden temple dragon mystical ancient secrets powerful magic enchanted forest</div>
+        <div class="box">
+            <textarea id="inputBox" spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <audio class="highlightSound">
+        <source src="chime-74910-[AudioTrimmer.com].mp3" type="audio/mpeg">
+    </audio>
+    <audio class="highlightSound">
+        <source src="chime-74910-[AudioTrimmer.com].mp3" type="audio/mpeg">
+    </audio>
+    <audio class="highlightSound">
+        <source src="chime-74910-[AudioTrimmer.com].mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const leftBox = document.getElementById("leftBox");
+        const inputBox = document.getElementById("inputBox");
+        const highlightSounds = document.querySelectorAll('.highlightSound');
+        let currentSoundIndex = 0;
+
+        function playHighlightSound() {
+            highlightSounds[currentSoundIndex].currentTime = 0;
+            highlightSounds[currentSoundIndex].play();
+            currentSoundIndex = (currentSoundIndex + 1) % highlightSounds.length;
+        }
+
+        function updateHighlights() {
+            const leftText = leftBox.textContent;
+            const inputText = inputBox.value.toLowerCase();
+            let highlightedText = leftText;
+            let newMatches = false;
+
+            // Split the left text into words and phrases
+            const leftPhrases = leftText.match(/\S+/g) || [];
+
+            leftPhrases.forEach(phrase => {
+                const lowerPhrase = phrase.toLowerCase();
+                if (inputText.includes(lowerPhrase)) {
+                    const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+                    if (!highlightedText.includes(`<span class="highlight">${phrase}</span>`)) {
+                        newMatches = true;
+                    }
+                    highlightedText = highlightedText.replace(regex, `<span class="highlight">${phrase}</span>`);
+                }
+            });
+
+            leftBox.innerHTML = highlightedText;
+
+            if (newMatches) {
+                playHighlightSound();
+            }
+        }
+
+        inputBox.addEventListener("input", updateHighlights);
+
+        // Initial setup
+        updateHighlights();
+    </script>
+</body>
+</html>

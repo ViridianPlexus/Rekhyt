@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Boxes with Microphone Button</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .box {
+            width: 200px;
+            height: 200px;
+            border: 2px solid black;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow-wrap: break-word;
+            overflow: auto;
+        }
+        .microphone-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .microphone-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box">hidden temple dragon</div>
+        <div class="box" id="resultBox"></div>
+    </div>
+    <button class="microphone-button" id="micButton">
+        <i class="fa-solid fa-microphone"></i> Start Listening
+    </button>
+
+    <script>
+        const resultBox = document.getElementById('resultBox');
+        const micButton = document.getElementById('micButton');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        micButton.addEventListener('click', () => {
+            recognition.start();
+            micButton.textContent = 'Listening...';
+        });
+
+        recognition.onresult = (event) => {
+            const speechResult = event.results[0][0].transcript;
+            resultBox.textContent = speechResult;
+            micButton.textContent = 'Start Listening';
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            micButton.textContent = 'Start Listening';
+        };
+
+        recognition.onend = () => {
+            micButton.textContent = 'Start Listening';
+        };
+    </script>
+</body>
+</html>

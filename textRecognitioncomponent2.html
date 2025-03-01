@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Input with Boxes and Audio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .box {
+            width: 200px;
+            height: 200px;
+            border: 2px solid black;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow-wrap: break-word;
+            overflow: auto;
+        }
+        #inputBox {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: inherit;
+            text-align: center;
+            resize: none;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .highlight {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box" id="leftBox">hidden temple dragon</div>
+        <div class="box">
+            <div id="inputBox" contenteditable="true" spellcheck="false"></div>
+        </div>
+    </div>
+
+    <audio id="highlightSound">
+        <source src="chime-74910-[AudioTrimmer.com].mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const leftBox = document.getElementById("leftBox");
+        const inputBox = document.getElementById("inputBox");
+        const highlightSound = document.getElementById("highlightSound");
+        const originalLeftWords = leftBox.textContent.toLowerCase().split(/\s+/);
+        let highlightedWords = new Set();
+
+        function updateLeftBoxHighlights() {
+            const inputWords = inputBox.textContent.toLowerCase().split(/\s+/);
+            const newHighlightedWords = new Set();
+
+            const highlightedContent = originalLeftWords.map(word => {
+                if (inputWords.includes(word)) {
+                    newHighlightedWords.add(word);
+                    return `<span class="highlight">${word}</span>`;
+                }
+                return word;
+            }).join(' ');
+            
+            leftBox.innerHTML = highlightedContent;
+
+            // Play sound for newly highlighted words
+            newHighlightedWords.forEach(word => {
+                if (!highlightedWords.has(word)) {
+                    highlightSound.play();
+                }
+            });
+
+            highlightedWords = newHighlightedWords;
+        }
+
+        inputBox.addEventListener("input", updateLeftBoxHighlights);
+
+        // Initial setup
+        updateLeftBoxHighlights();
+    </script>
+</body>
+</html>

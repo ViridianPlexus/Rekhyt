@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speech Recognition Example</title>
+</head>
+<body>
+    <button id="startButton">Start Listening</button>
+    <div id="output"></div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const output = document.getElementById('output');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        startButton.addEventListener('click', () => {
+            recognition.start();
+            startButton.textContent = 'Listening...';
+        });
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            output.textContent = `You said: ${transcript}`;
+            startButton.textContent = 'Start Listening';
+        };
+
+        recognition.onerror = (event) => {
+            output.textContent = `Error: ${event.error}`;
+            startButton.textContent = 'Start Listening';
+        };
+    </script>
+</body>
+</html>
