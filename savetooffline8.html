@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Cards</title>
+    <style>
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h1>Flash cards</h1>
+
+<div id="flashcards-container">
+    <div class="row">
+        <div>   
+            <h4>English</h4>
+            <textarea name="message" rows="5" cols="30" class="sourceTerm" placeholder="Term"></textarea>
+            <br>
+            <textarea name="message" rows="10" cols="30" class="sourceDefinition" placeholder="Definition"></textarea>
+        </div>
+
+        <div>   
+            <h4>French</h4>
+            <textarea name="message" rows="5" cols="30" class="resultTerm" placeholder="ResultTerm"></textarea>
+            <br>
+            <textarea name="message" rows="10" cols="30" class="resultDefinition"></textarea>
+        </div>
+
+        <div>   
+            <h4>Spanish</h4>
+            <textarea name="message" rows="5" cols="30" class="resultTerm" placeholder="ResultTerm"></textarea>
+            <br>
+            <textarea name="message" rows="10" cols="30" class="resultDefinition"></textarea>
+        </div>
+
+        <div>   
+            <h4>Russian</h4>
+            <textarea name="message" rows="5" cols="30" class="resultTerm" placeholder="ResultTerm"></textarea>
+            <br>
+            <textarea name="message" rows="10" cols="30" class="resultDefinition"></textarea>
+        </div>
+    </div>
+</div>
+
+<button type="button" id="addRow">+ new row</button>
+<button type="button" id="translateBtn">translate</button>
+<button type="button" onclick="saveToFile()">Save to File</button>
+<button type="button" onclick="loadFromFile()">Load from File</button>
+<input type="file" id="fileInput" style="display: none;">
+
+<script>
+    function addNewRow() {
+        const container = document.getElementById('flashcards-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'row';
+        newRow.innerHTML = `
+            <div>   
+                <h4>English</h4>
+                <textarea name="message" rows="5" cols="30" class="sourceTerm" placeholder="Term"></textarea>
+                <br>
+                <textarea name="message" rows="10" cols="30" class="sourceDefinition" placeholder="Definition"></textarea>
+            </div>
+
+            <div>   
+                <h4>French</h4>
+                <textarea name="message" rows="5" cols="30" class="resultTerm" placeholder="ResultTerm"></textarea>
+                <br>
+                <textarea name="message" rows="10" cols="30" class="resultDefinition"></textarea>
+            </div>
+
+            <div>   
+                <h4>Spanish</h4>
+                <textarea name="message" rows="5" cols="30" class="resultTerm" placeholder="ResultTerm"></textarea>
+                <br>
+                <textarea name="message" rows="10" cols="30" class="resultDefinition"></textarea>
+            </div>
+
+            <div>   
+                <h4>Russian</h4>
+                <textarea name="message" rows="5" cols="30" class="resultTerm" placeholder="ResultTerm"></textarea>
+                <br>
+                <textarea name="message" rows="10" cols="30" class="resultDefinition"></textarea>
+            </div>
+        `;
+        container.appendChild(newRow);
+    }
+
+
+     // Add event listener for the Ctrl + M hotkey
+     document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'm') {
+            event.preventDefault(); // Prevent default browser behavior
+            addNewRow();
+        }
+    });
+    
+    function translate(sourceText, targetLang, targetTextarea) {
+        var sourceLang = 'en';
+        var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + sourceLang + "&tl=" + targetLang + "&dt=t&q=" + encodeURI(sourceText);
+        
+        $.getJSON(url, function(data) {
+            $(targetTextarea).val(data[0][0][0]);
+        });
+    }
+
+    function saveToFile() {
+        let content = "";
+        const rows = document.querySelectorAll('.row');
+        rows.forEach((row, index) => {
+            const terms = row.querySelectorAll('.sourceTerm, .resultTerm');
+            const definitions = row.querySelectorAll('.sourceDefinition, .resultDefinition');
+            content += `Row ${index + 1}:\n`;
+            content += `English Term: ${terms[0].value}\n`;
+            content += `English Definition: ${definitions[0].value}\n`;
+            content += `French Term: ${terms[1].value}\n`;
+            content += `French Definition: ${definitions[1].value}\n`;
+            content += `Spanish Term: ${terms[2].value}\n`;
+            content += `Spanish Definition: ${definitions[2].value}\n`;
+            content += `Russian Term: ${terms[3].value}\n`;
+            content += `Russian Definition: ${definitions[3].value}\n\n`;
+        });
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'flashcards.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function loadFromFile() {
+    document.getElementById('fileInput').click();
+}
+
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            parseFileContent(content);
+        };
+        reader.readAsText(file);
+    }
+});
+
+function parseFileContent(content) {
+    const rows = content.split('\n\n');
+    document.getElementById('flashcards-container').innerHTML = '';
+
+    rows.forEach(row => {
+        if (row.trim() !== '') {
+            const lines = row.split('\n');
+            const cardData = {};
+
+            // Extract data using a more robust method
+            lines.forEach(line => {
+                const parts = line.split(': ');
+                if (parts.length === 2) {
+                    const key = parts[0].trim();
+                    const value = parts[1].trim();
+                    cardData[key] = value;
+                }
+            });
+
+            // Create a new row
+            addNewRow();
+            const currentRow = document.querySelector('.row:last-child');
+            const terms = currentRow.querySelectorAll('.sourceTerm, .resultTerm');
+            const definitions = currentRow.querySelectorAll('.sourceDefinition, .resultDefinition');
+
+            // Populate the fields, checking for existence of data
+            terms[0].value = cardData['English Term'] || '';
+            definitions[0].value = cardData['English Definition'] || '';
+            terms[1].value = cardData['French Term'] || '';
+            definitions[1].value = cardData['French Definition'] || '';
+            terms[2].value = cardData['Spanish Term'] || '';
+            definitions[2].value = cardData['Spanish Definition'] || '';
+            terms[3].value = cardData['Russian Term'] || '';
+            definitions[3].value = cardData['Russian Definition'] || '';
+        }
+    });
+}
+
+
+
+    $('#translateBtn').click(function() {
+        $('.row').each(function() {
+            var sourceTerm = $(this).find('.sourceTerm').val();
+            var sourceDefinition = $(this).find('.sourceDefinition').val();
+            var targetTerms = $(this).find('.resultTerm');
+            var targetDefinitions = $(this).find('.resultDefinition');
+            
+            ['fr', 'es', 'ru'].forEach((lang, index) => {
+                translate(sourceTerm, lang, targetTerms[index]);
+                translate(sourceDefinition, lang, targetDefinitions[index]);
+            });
+        });
+    });
+
+    $('#addRow').click(addNewRow);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Flashcards</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=u_turn_left,volume_up" />
+        <style>
+            body, html {
+                height: 100%;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .flashcard-container {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+                max-width: 1000px;
+            }
+            .card-wrapper {
+                width: 25rem;
+                height: 200px;
+            }
+            .card-body {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                transition: transform 0.6s;
+                transform-style: preserve-3d;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.2),0 5px 15px rgba(0,0,0,0.19);
+            }
+            .card-front, .card-back {
+                background-color: #ffffff;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+            .card-front p, .card-back p {
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: large;
+                margin: 0;
+            }
+            .card-back {
+                transform: rotateX(180deg);
+            }
+            .flipped .card-body {
+                transform: rotateX(180deg);
+            }
+            .icon {
+                position: absolute;
+                bottom: 10px;
+                cursor: pointer;
+                font-size: 24px;
+            }
+            .sound-icon {
+                left: 10px;
+            }
+            .flip-icon {
+                right: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <input type="file" id="fileInput" accept=".txt">
+        <div class="flashcard-container">
+            <div class="card-wrapper">
+                <div class="card-body">
+                    <div class="card-front" id="Englishterm">
+                        <p>Question 1?</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                    <div class="card-back" id="EnglishDefinition">
+                        <p>Answer 1</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-wrapper">
+                <div class="card-body">
+                    <div class="card-front" id="Frenchterm">
+                        <p>Question 2?</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                    <div class="card-back" id="FrenchDefinition">
+                        <p>Answer 2</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-wrapper">
+                <div class="card-body">
+                    <div class="card-front" id="Spanishterm">
+                        <p>Question 3?</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                    <div class="card-back" id="SpanishDefinition">
+                        <p>Answer 3</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-wrapper">
+                <div class="card-body">
+                    <div class="card-front" id="Russianterm">
+                        <p>Question 4?</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                    <div class="card-back" id="RussianDefinition">
+                        <p>Answer 4</p>
+                        <span class="material-symbols-outlined icon sound-icon">volume_up</span>
+                        <span class="material-symbols-outlined icon flip-icon">u_turn_left</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+
+let flashcardData = [];
+    let currentRowIndex = 0;
+        
+        function speak(text, lang) {
+            console.log("here is the language: " + lang)
+            console.log("here is the text: " + text)
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    speechSynthesis.speak(utterance);
+}
+
+document.querySelectorAll('.sound-icon').forEach(icon => {
+    icon.addEventListener('click', function(event) {
+        event.stopPropagation();
+        const card = this.closest('.card-wrapper');
+        const isFlipped = card.classList.contains('flipped');
+        const side = isFlipped ? '.card-back' : '.card-front';
+        const text = card.querySelector(`${side} p`).textContent;
+        const language = card.querySelector('.card-front').id.replace('term', '');
+        const langCode = getLangCode(language);
+        speak(text, langCode);
+    });
+});
+
+
+
+function getLangCode(language) {
+    const langCodes = {
+        'English': 'en-US',
+        'French': 'fr-FR',
+        'Spanish': 'es-ES',
+        'Russian': 'ru-RU'
+    };
+    return langCodes[language] || 'en-US';
+}
+
+    
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const contents = e.target.result;
+            parseFlashcardData(contents);
+            updateCards();
+        };
+
+        reader.readAsText(file);
+    });
+
+    function parseFlashcardData(contents) {
+        flashcardData = [];
+        const rows = contents.split('\n\n');
+        rows.forEach(row => {
+            if (row.trim() !== '') {
+                const lines = row.split('\n').slice(1); // Skip the "Row X:" line
+                const cardData = {};
+                lines.forEach(line => {
+                    const [key, value] = line.split(': ');
+                    cardData[key] = value;
+                });
+                flashcardData.push(cardData);
+            }
+        });
+        console.log(flashcardData);
+    }
+
+    function updateCards() {
+        if (flashcardData.length === 0) return;
+        
+        const currentCard = flashcardData[currentRowIndex];
+        
+        document.getElementById('Englishterm').querySelector('p').textContent = currentCard['English Term'];
+        document.getElementById('EnglishDefinition').querySelector('p').textContent = currentCard['English Definition'];
+        
+        document.getElementById('Frenchterm').querySelector('p').textContent = currentCard['French Term'];
+        document.getElementById('FrenchDefinition').querySelector('p').textContent = currentCard['French Definition'];
+        
+        document.getElementById('Spanishterm').querySelector('p').textContent = currentCard['Spanish Term'];
+        document.getElementById('SpanishDefinition').querySelector('p').textContent = currentCard['Spanish Definition'];
+        
+        document.getElementById('Russianterm').querySelector('p').textContent = currentCard['Russian Term'];
+        document.getElementById('RussianDefinition').querySelector('p').textContent = currentCard['Russian Definition'];
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.code === 'Space') {
+            event.preventDefault(); // Prevent scrolling
+            const cards = document.querySelectorAll('.card-wrapper');
+            cards.forEach(card => {
+                card.classList.toggle('flipped');
+            });
+        } else if (event.code === 'ArrowRight') {
+            currentRowIndex = (currentRowIndex + 1) % flashcardData.length;
+            updateCards();
+        } else if (event.code === 'ArrowLeft') {
+            currentRowIndex = (currentRowIndex - 1 + flashcardData.length) % flashcardData.length;
+            updateCards();
+        }
+    });
+
+
+
+        // Add this new code at the end of your script
+        document.querySelectorAll('.flip-icon').forEach(icon => {
+            icon.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const card = this.closest('.card-wrapper');
+                card.classList.toggle('flipped');
+            });
+        });
+
+        // Placeholder for sound functionality
+        document.querySelectorAll('.sound-icon').forEach(icon => {
+            icon.addEventListener('click', function(event) {
+                event.stopPropagation();
+                console.log('Sound icon clicked');
+                // Add text-to-speech functionality here
+            });
+        });
+        </script>
+    </body>
+</html>
