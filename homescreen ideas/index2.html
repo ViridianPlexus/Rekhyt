@@ -1,0 +1,127 @@
+<!-- 500 word chunks then go to word bouncing, those same words then back to speed reading
+another 500 words, repeat until end of file -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed read excerpt</title>
+    <link rel="stylesheet" href="mystyle.css">
+</head>
+<body onload="Init()">
+    <h1 id='speed'></h1>
+    <div id="text">Click to Pause/Resume</div>
+    <button id="pauseButton">Pause</button>
+    <button id="continueButton" style="display: none;">Continue</button>
+    <div id="seek"></div>
+    <a id="backButton" href ="index.html">Back</a>
+    
+        <input type="file" id="fileInput" />
+   
+
+ 
+
+    <script>
+        let fileData = '';
+        let bookLength = 0;
+        let intervalId;
+        let isPaused = false;
+        let intervalTime = 16; // Initial interval duration in milliseconds
+        let updateText;
+        let words = [];
+        let index = 0;
+        let userPaused = false;
+        let z=0;
+
+        function Init() {
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+            document.getElementById('pauseButton').addEventListener('click', toggleInterval);
+            document.getElementById('continueButton').addEventListener('click', continueText);
+            
+        }
+
+        function getbooklength(){
+            book= fileData.split(/\s+/)
+            bookLength = book.length
+
+        }
+
+        function handleFileSelect(event) {
+           
+           
+            
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                fileData = event.target.result;
+                console.log('File data read successfully:', fileData);
+                do{
+                getbooklength();
+                z=1;
+
+             }while(z===0)
+                startRandomizing();
+            };
+
+            reader.readAsText(file);
+        }
+
+
+
+        // create a function that aquires sections of 500 words
+        function getFileData(index){
+           let theWords =  fileData.split(/\s+/).slice(index, index+500); // Get first 500 words
+           console.log('the index: ', index)
+           console.log('the words: '+ theWords)
+            return theWords;
+        }
+
+        function startRandomizing() {
+           let placeHolder = 0;
+            words = getFileData(index)
+            console.log('length of placeholder'+ placeHolder)
+            
+            updateText = function() {
+                console.log('update text called')
+                console.log('length of index'+index)
+                if (placeHolder < words.length) {
+                    document.getElementById('text').textContent = words[placeHolder];
+                    document.getElementById('seek').textContent = `${index + 1}/${bookLength}`;
+                    index++;
+                    placeHolder++;
+                } else {
+                    document.getElementById('text').textContent = '-';
+                    document.getElementById('continueButton').style.display = 'inline'; // Show Continue button
+                    clearInterval(intervalId); // Stop the interval when done
+                }
+            }
+
+            intervalId = setInterval(updateText, intervalTime);
+        }
+
+
+
+        function toggleInterval() {
+            if (isPaused) {
+                intervalId = setInterval(updateText, intervalTime);
+                isPaused = false;
+                document.getElementById('pauseButton').textContent = 'Pause';
+            } else {
+                clearInterval(intervalId);
+                isPaused = true;
+                document.getElementById('pauseButton').textContent = 'Resume';
+            }
+        }
+
+        function continueText() {
+            document.getElementById('continueButton').style.display = 'none'; // Hide Continue button
+            index
+            startRandomizing(); // Continue displaying text
+            // intervalId = setInterval(updateText, intervalTime); // Resume interval
+        }
+    </script>
+</body>
+</html>

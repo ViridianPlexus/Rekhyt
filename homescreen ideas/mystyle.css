@@ -1,0 +1,35 @@
+
+        body {
+            background-color: lightblue;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        #text {
+            font-size: 40px;
+            color: black;
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
+        }
+        #fileInput {
+            margin-bottom: 20px;
+            position: fixed;
+            bottom: 0;
+        }
+
+        #seek {
+            margin-right: 400px;
+        margin-left: auto;
+    }
+     
+
+    #backButton{
+        margin-bottom: 20px;
+       
+        bottom: 0;
+        
+
+    }
+    
